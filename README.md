@@ -17,4 +17,4 @@
 
 - Para certificados https autofirmados, instalar mkcert usando Chocolatey`choco install mkcert`, 
 generar el certificado y agregarlo `mkcert -install`, `mkcert localhost 127.0.0.1 ::1`. Con ello el certificado está en 
-"localhost+2.pem" y la clave en "localhost+2-key.pem" en nuestra carpeta de proyecto
+"localhost+2.pem" y la clave en "localhost+2-key.pem" en nuestra carpeta de proyecto.
