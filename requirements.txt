@@ -1,0 +1,15 @@
+python-dotenv~=1.0.0
+fastapi~=0.101.0
+pydantic~=2.1.1
+uvicorn~=0.23.2
+#starlette~=0.27.0
+starlette~=0.31.0
+SQLAlchemy~=2.0.19
+passlib~=1.7.4
+python-jose~=3.3.0
+python-multipart~=0.0.6
+bcrypt~=4.0.1
+psycopg2~=2.9.7
+#psycopg2-binary~=2.9.7
+requests~=2.31.0
+patool~=1.15.0
