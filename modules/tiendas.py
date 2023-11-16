@@ -24,6 +24,7 @@ class TiendaP(TiendaId):
     desac: bool
     municipio: 'MunicipioE'
     cadena: 'CadenaE'
+    ofertas: List['OfertaE'] | None
     bodegas: List['BodegaE'] | None
     resposables: List['ResponsableE'] | None
 
@@ -83,6 +84,13 @@ class TiendaBo(TiendaId):
     bodegas: List['BodegaE']
 
 
+class TiendaOf(TiendaId):
+    nombre: str
+    municipio: 'MunicipioId'
+    cadena: 'CadenaId'
+    ofertas: List['OfertaE']
+
+
 class TiendaRe(TiendaId):
     nombre: str
     municipio: 'MunicipioId'
@@ -106,6 +114,7 @@ class TiendaS(Base):
     cadena: Mapped['CadenaS'] = relationship('CadenaS', back_populates="tiendas")
     bodegas: Mapped[List['BodegaS']] = relationship(back_populates="tienda", cascade="all, delete")
     responsables: Mapped[List['ResponsableS']] = relationship(back_populates="tienda", cascade="all, delete")
+    ofertas: Mapped[List['OfertaS']] = relationship(back_populates="tienda", cascade="all, delete")
     __table_args__ = (UniqueConstraint(nombre, id_municipio, id_cadena, name='nombre, id_municipio, id_cadena'),)
 
 
@@ -113,6 +122,8 @@ from .municipios import MunicipioId, MunicipioE, MunicipioS
 from .cadenas import CadenaId, CadenaE, CadenaS
 from .bodegas import BodegaS, BodegaE
 from .responsables import ResponsableS, ResponsableE
+from .ofertas import OfertaS, OfertaE
+
 
 TiendaC.model_rebuild()
 TiendaR.model_rebuild()
@@ -122,6 +133,7 @@ TiendaRe.model_rebuild()
 TiendaBo.model_rebuild()
 TiendaMu.model_rebuild()
 TiendaCa.model_rebuild()
+TiendaOf.model_rebuild()
 
 
 # noinspection PyTypeChecker
@@ -180,6 +192,19 @@ async def _find(p: BaseModel, db: Session):
                 query = query.filter(ResponsableS.id_responsable == r.id_responsable)
             if r.fecha_creacion:
                 query = query.filter(ResponsableS.fecha_creacion == r.fecha_creacion)
+        if p.oferta:
+            r = p.oferta
+            query = query.join(OfertaS, OfertaS.id_tienda == TiendaS.id_ciclo)
+            if r.id_oferta:
+                query = query.filter(OfertaS.id_oferta == r.id_oferta)
+            if r.descripcion:
+                query = query.filter(OfertaS.descripcion.ilike(f'%{r.descripcion}%'))
+            if r.fecha_inicio:
+                query = query.filter(OfertaS.fecha_inicio == r.fecha_inicio)
+            if r.fecha_fin:
+                query = query.filter(OfertaS.fecha_fin == r.fecha_fin)
+            if r.cantidad:
+                query = query.filter(OfertaS.cantidad == r.cantidad)
     return query
 
 
@@ -246,6 +271,13 @@ async def read_cadena(up: TiendaId, db: Session = Depends(get_db)):
 # noinspection PyTypeChecker
 @router.get("/bodegas", response_model=TiendaBo)
 async def read_bodegas(up: TiendaId, db: Session = Depends(get_db)):
+    query = db.query(TiendaS).filter(TiendaS.id_tienda == up.id_tienda)
+    return await forwards.read(query)
+
+
+# noinspection PyTypeChecker
+@router.get("/ofertas", response_model=TiendaOf)
+async def read_ofertas(up: TiendaId, db: Session = Depends(get_db)):
     query = db.query(TiendaS).filter(TiendaS.id_tienda == up.id_tienda)
     return await forwards.read(query)
 

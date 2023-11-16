@@ -3,19 +3,19 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 import os
 from datetime import datetime, timedelta
-from typing import Annotated, List
+from typing import Annotated
 from fastapi import Depends, HTTPException, status, APIRouter
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from database import get_db
 from .usuarios import UsuarioS, UsuarioP, UsuarioE
-from .nucleos import NucleoId, NucleoS
+from .nucleos import NucleoS
 
 router = APIRouter()
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
+usuarios = dict()
 
 async def _verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
@@ -45,7 +45,7 @@ async def get_user(token: Annotated[str, Depends(oauth2_scheme)], db: Session = 
         if not user:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password",
                                 headers={"WWW-Authenticate": "Bearer"})
-        elif user.desac:
+        elif user.desac and user.id_usuario not in usuarios:
             raise HTTPException(status_code=status.HTTP_423_LOCKED, detail="Inactive user")
     return user
 
@@ -56,7 +56,7 @@ class Token(BaseModel):
 
 
 @router.post("/token", response_model=Token, summary="Autenticar por Token", response_description="Crear Token", )
-async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+async def token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
                                  db: Session = Depends(get_db)):
     user = await _get_user(form_data.username, db)
     if not user or not await _verify_password(form_data.password, user.hash_clave):
@@ -67,11 +67,12 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
     expires_delta = timedelta(minutes=int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES')))
     to_encode = {"user": str(user.id_usuario), "exp": datetime.utcnow() + expires_delta}
     access_token = jwt.encode(to_encode, os.getenv('SECRET_KEY'), algorithm=os.getenv('ALGORITHM'))
+    usuarios[user.id_usuario] = access_token
     return {"access_token": access_token, "token_type": "bearer"}
 
 
 @router.get("/perfil", response_model=UsuarioE)
-async def read_users_me(current_user: Annotated[UsuarioP, Depends(get_user)]):
+async def perfil(current_user: Annotated[UsuarioP, Depends(get_user)]):
     return current_user
 
 
@@ -83,9 +84,8 @@ class UserCons(BaseModel):
 
 
 # noinspection PyTypeChecker
-
 @router.post("/registro", response_model=Token)
-async def create_users(p: UserCons, db: Session = Depends(get_db)):
+async def registro(p: UserCons, db: Session = Depends(get_db)):
     query = db.query(UsuarioS).filter((UsuarioS.ci == p.ci) | (UsuarioS.num_cel == p.num_cel))
 
     usuario = query.first()
@@ -122,6 +122,46 @@ async def create_users(p: UserCons, db: Session = Depends(get_db)):
             return {"access_token": access_token, "token_type": "bearer"}
 
 
+class UserCom(BaseModel):
+    num_cel: str
+    ci: str
+    nucleo: str
+
+
+# noinspection PyTypeChecker
+@router.post("/compaginar", response_model=bool)
+async def compagina(p: UserCom, db: Session = Depends(get_db)):
+    query = db.query(UsuarioS).filter(UsuarioS.ci == p.ci).filter(UsuarioS.num_cel == p.num_cel)
+    usuario = query.first()
+    if usuario:
+        for cons in usuario.consumidores:
+            if str(cons.id_nucleo) == p.nucleo:
+                return True
+    return False
+
+
+class UserComCon(UserCom):
+    clave: str
+
+
+# noinspection PyTypeChecker
+@router.post("/recuperar", response_model=bool)
+async def recuperar(p: UserComCon, db: Session = Depends(get_db)):
+    query = db.query(UsuarioS).filter(UsuarioS.ci == p.ci).filter(UsuarioS.num_cel == p.num_cel)
+    usuario = query.first()
+    for cons in usuario.consumidores:
+        if str(cons.id_nucleo) == p.nucleo:
+            query_aux = {'hash_clave': await get_password_hash(p.ci)}
+            try:
+                query.update(query_aux)
+                db.commit()
+            except (Exception,):
+                raise HTTPException(status_code=400, detail="No se pudo hacer el cambio de contraseña")
+            else:
+                if usuario.id_usuario in usuarios:
+                    del usuarios[usuario.id_usuario]
+                return True
+    return False
 
 """
 # noinspection PyTypeChecker

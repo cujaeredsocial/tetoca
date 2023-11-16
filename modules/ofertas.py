@@ -25,6 +25,7 @@ class OfertaP(OfertaId):
     fecha_fin: datetime.date
     cantidad: int
     ciclo: 'CicloE'
+    tienda: 'TiendaE'
     subofertas: List['SubOfertaE'] | None
     compras: List['CompraE'] | None
 
@@ -35,6 +36,7 @@ class OfertaU(OfertaId):
     fecha_fin: datetime.date | None = None
     cantidad: int | None = None
     id_ciclo: int | None = None
+    id_tienda: int | None = None
 
 
 class OfertaE(BaseModel):
@@ -52,6 +54,7 @@ class OfertaR(BaseModel):
     fecha_fin: datetime.date | None = None
     cantidad: int | None = None
     ciclo: Optional['CicloE'] = None
+    tienda: Optional['TiendaE'] = None
     suboferta: Optional['SubOfertaE'] = None
     compra: Optional['CompraE'] = None
 
@@ -62,11 +65,17 @@ class OfertaC(BaseModel):
     fecha_fin: datetime.date
     cantidad: int
     ciclo: 'CicloId'
+    tienda: 'TiendaId'
 
 
 class OfertaCi(OfertaId):
     id_ciclo: int
     ciclo: 'CicloE'
+
+
+class OfertaTi(OfertaId):
+    id_tienda: int
+    tienda: 'TiendaE'
 
 
 class OfertaSu(OfertaId):
@@ -86,10 +95,13 @@ class OfertaS(Base):
     cantidad = Column(Integer, unique=False, nullable=False, index=True)
     id_ciclo = Column(Integer, ForeignKey('ciclos.id_ciclo', ondelete='CASCADE'), nullable=False, index=True)
     ciclo: Mapped['CicloS'] = relationship('CicloS', back_populates="ofertas")
+    id_tienda = Column(Integer, ForeignKey('tiendas.id_tienda', ondelete='CASCADE'), nullable=False, index=True)
+    tienda: Mapped['TiendaS'] = relationship('TiendaS', back_populates="ofertas")
     subofertas: Mapped[List['SubOfertaS']] = relationship(back_populates="oferta", cascade="all, delete")
     compras: Mapped[List['CompraS']] = relationship(back_populates="oferta", cascade="all, delete")
 
 
+from .tiendas import TiendaE, TiendaId, TiendaS
 from .ciclos import CicloE, CicloId, CicloS
 from .subofertas import SubOfertaE, SubOfertaS
 from .compras import CompraE, CompraS
@@ -100,6 +112,7 @@ OfertaU.model_rebuild()
 OfertaC.model_rebuild()
 OfertaSu.model_rebuild()
 OfertaCi.model_rebuild()
+OfertaTi.model_rebuild()
 
 
 # noinspection PyTypeChecker
@@ -129,6 +142,19 @@ async def _find(p: BaseModel, db: Session):
                 query = query.filter(CicloS.fecha_inicio == r.fecha_inicio)
             if r.fecha_fin:
                 query = query.filter(CicloS.fecha_fin == r.fecha_fin)
+        if p.tienda:
+            r = p.tienda
+            query = query.join(TiendaS, TiendaS.id_tienda == OfertaS.id_tienda)
+            if r.id_tienda:
+                query = query.filter(TiendaS.id_tienda == r.id_tienda)
+            if r.nombre:
+                query = query.filter(TiendaS.nombre.ilike(f'%{r.nombre}%'))
+            if r.direccion:
+                query = query.filter(TiendaS.direccion.ilike(f'%{r.direccion}%'))
+            if r.frecuencia_venta:
+                query = query.filter(TiendaS.frecuencia_venta == r.frecuencia_venta)
+            if r.desac is not None:
+                query = query.filter(TiendaS.desac == r.desac)
         if p.compra:
             r = p.compra
             query = query.join(CompraS, CompraS.id_oferta == OfertaS.id_oferta)
@@ -197,6 +223,13 @@ async def delete(p: OfertaId, db: Session = Depends(get_db)):
 # noinspection PyTypeChecker
 @router.get("/ciclo", response_model=OfertaCi)
 async def read_ciclo(p: OfertaId, db: Session = Depends(get_db)):
+    query = db.query(OfertaS).filter(OfertaS.id_oferta == p.id_oferta)
+    return await forwards.read(query)
+
+
+# noinspection PyTypeChecker
+@router.get("/tienda", response_model=OfertaTi)
+async def read_tienda(p: OfertaId, db: Session = Depends(get_db)):
     query = db.query(OfertaS).filter(OfertaS.id_oferta == p.id_oferta)
     return await forwards.read(query)
 

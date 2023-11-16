@@ -4,7 +4,7 @@ from database import Base, get_db
 from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint, Boolean
 from sqlalchemy.orm import Session, relationship, Mapped
 from fastapi import Depends, APIRouter
-from typing import List, Optional
+from typing import List, Optional, Annotated
 
 from service import forwards
 
