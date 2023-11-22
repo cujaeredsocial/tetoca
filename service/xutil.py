@@ -11,33 +11,74 @@ async def sync_reset():
     """
     archivo_rar = "tetoca.rar"
     if os.path.exists(archivo_rar):
-        import psycopg2
-        from database import user, dbs, passw, server, port
-        conn = psycopg2.connect(dbname=dbs, user=user, password=passw, host=server, port=port)
+        await sync_cerodb()
 
-        cursor = conn.cursor()
 
-        try:
-            cursor.execute(
-                "SELECT tablename FROM pg_tables WHERE schemaname = 'public'"
-            )
+async def info():
+    import psycopg2
+    from database import user, dbs, passw, server, port
+    import psutil
+    import platform
+    conn = psycopg2.connect(dbname=dbs, user=user, password=passw, host=server, port=port)
 
-            tables = cursor.fetchall()
+    cpu_usage = psutil.cpu_percent()
+    memory_usage = psutil.virtual_memory().percent
+    disk_usage = psutil.disk_usage('/').percent
+    network_info = psutil.net_if_addrs()
+    processes = [p.info for p in psutil.process_iter(['pid', 'name'])]  # Procesos en ejecución
 
-            for table in tables:
-                cursor.execute(f"DROP TABLE {table[0]} CASCADE")
+    system_info = {
+        "sistema_operativo": platform.system(),
+        "version": platform.version(),
+        "arquitectura": platform.architecture()
+    }
 
-            conn.commit()
-            print("Todos los datos en las tablas han sido eliminados.")
+    cursor = conn.cursor()
 
-        except psycopg2.Error as e:
-            conn.rollback()
-            print("Error al truncar las tablas:", e)
+    cursor.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
+    tablas = [row[0] for row in cursor.fetchall()]
 
-        finally:
-            cursor.close()
-            conn.close()
+    cursor.execute(
+        "SELECT usename, datname, application_name, client_addr FROM pg_stat_activity WHERE state = 'active'")
+    usuarios_conectados = cursor.fetchall()
 
+    print("Uso de CPU:", cpu_usage)
+    print("Uso de Memoria:", memory_usage)
+    print("Uso de Disco:", disk_usage)
+    print("Información de Red:", network_info)
+    print("Procesos en Ejecución:", processes)
+    print("Información del Sistema:", system_info)
+    print("Tablas en la Base de Datos:", tablas)
+    print("Usuarios Conectados:", usuarios_conectados)
+
+
+async def sync_cerodb():
+    import psycopg2
+    from database import user, dbs, passw, server, port
+    conn = psycopg2.connect(dbname=dbs, user=user, password=passw, host=server, port=port)
+
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute(
+            "SELECT tablename FROM pg_tables WHERE schemaname = 'public'"
+        )
+
+        tables = cursor.fetchall()
+
+        for table in tables:
+            cursor.execute(f"DROP TABLE {table[0]} CASCADE")
+
+        conn.commit()
+        print("Todos los datos en las tablas han sido eliminados.")
+
+    except psycopg2.Error as e:
+        conn.rollback()
+        print("Error al truncar las tablas:", e)
+
+    finally:
+        cursor.close()
+        conn.close()
 
 async def sync_import():
     """

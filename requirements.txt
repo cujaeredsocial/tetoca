@@ -1,15 +1,40 @@
-python-dotenv~=1.0.0
-fastapi~=0.101.0
-pydantic~=2.1.1
-uvicorn~=0.23.2
-starlette~=0.27.0
-#starlette~=0.31.0
-SQLAlchemy~=2.0.19
-passlib~=1.7.4
-python-jose~=3.3.0
-python-multipart~=0.0.6
-bcrypt~=4.0.1
-#psycopg2~=2.9.7
-psycopg2-binary~=2.9.7
-requests~=2.31.0
-patool~=1.15.0
+annotated-types==0.6.0
+anyio==4.0.0
+bcrypt==4.0.1
+certifi==2023.7.22
+charset-normalizer==3.3.2
+click==8.1.7
+colorama==0.4.6
+ecdsa==0.18.0
+et-xmlfile==1.1.0
+fastapi==0.101.1
+greenlet==3.0.1
+h11==0.14.0
+idna==3.4
+numpy==1.26.2
+openpyxl==3.1.2
+pandas==2.1.3
+passlib==1.7.4
+patool==1.15.0
+psutil==5.9.6
+psycopg2-binary==2.9.7; platform_system == "Linux"
+psycopg2==2.9.9; platform_system == "Windows"
+pyasn1==0.5.0
+pydantic==2.1.1
+pydantic_core==2.4.0
+python-dateutil==2.8.2
+python-dotenv==1.0.0
+python-jose==3.3.0
+python-multipart==0.0.6
+pytz==2023.3.post1
+requests==2.31.0
+rsa==4.9
+six==1.16.0
+sniffio==1.3.0
+SQLAlchemy==2.0.23
+starlette==0.27.0; platform_system == "Linux"
+starlette==0.31.1; platform_system == "Windows"
+typing_extensions==4.8.0
+tzdata==2023.3
+urllib3==2.0.7
+uvicorn==0.23.2

@@ -28,6 +28,7 @@ class CompraP(CompraId):
     usuario: 'UsuarioE'
     estado: 'EstadoE'
     seleccion: str | None
+    notificado: bool
 
 
 class CompraU(CompraId):
@@ -116,6 +117,7 @@ class CompraS(Base):
                        nullable=False, index=True)
     estado: Mapped['EstadoS'] = relationship('EstadoS', back_populates="compras")
     seleccion = Column(String, unique=False, nullable=True, index=False)
+    notificado = Column(Boolean, unique=False, nullable=True, index=False, default=True)
 
 
 from .usuarios import UsuarioE, UsuarioId, UsuarioS
@@ -145,6 +147,8 @@ async def _find(p: BaseModel, db: Session):
             query = query.filter(CompraS.terminado == p.terminado)
         if p.pagado is not None:
             query = query.filter(CompraS.pagado == p.pagado)
+        if p.notificado is not None:
+            query = query.filter(CompraS.notificado == p.notificado)
         if p.seleccion:
             query = query.filter(CompraS.seleccion.ilike(f'%{p.seleccion}%'))
         if p.usuario:
@@ -250,14 +254,21 @@ async def delete(p: CompraId, db: Session = Depends(get_db)):
 @router.put("/pagado", response_model=CompraP)
 async def pagado(up: CompraId, db: Session = Depends(get_db)):
     query = db.query(CompraS).filter(CompraS.id_compra == up.id_compra)
-    return await forwards.activate(query, db)
+    return await forwards.changeTrue(query, db, 'pagado')
 
 
 # noinspection PyTypeChecker
 @router.put("/terminado", response_model=CompraP)
 async def terminado(up: CompraId, db: Session = Depends(get_db)):
     query = db.query(CompraS).filter(CompraS.id_compra == up.id_compra)
-    return await forwards.activate(query, db)
+    return await forwards.changeTrue(query, db, 'terminado')
+
+
+# noinspection PyTypeChecker
+@router.put("/notificado", response_model=CompraP)
+async def terminado(up: CompraId, db: Session = Depends(get_db)):
+    query = db.query(CompraS).filter(CompraS.id_compra == up.id_compra)
+    return await forwards.changeTrue(query, db, 'notificado')
 
 
 # noinspection PyTypeChecker

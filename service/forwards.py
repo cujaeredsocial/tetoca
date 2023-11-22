@@ -92,3 +92,14 @@ async def activate(query: Query, db: Session):
         raise HTTPException(status_code=400, detail="Is not Exists")
     await _commit(act_query, db)
     return act_query
+
+
+async def changeTrue(query: Query, db: Session, attr:str):
+    act_query = await _query_first(query, False)
+    try:
+        query.update({f'{attr}': True})
+    except (Exception,):
+        raise HTTPException(status_code=400, detail="Is not Exists")
+    await _commit(act_query, db)
+    return act_query
+
