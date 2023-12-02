@@ -113,14 +113,14 @@ async def _find(p: BaseModel, db: Session):
 
 
 # noinspection PyTypeChecker
-@router.get("/all", response_model=List[CicloP])
+@router.post("/all", response_model=List[CicloP])
 async def read_all(skip: int = 0, limit: int = 100, p: CicloR = None, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return query.offset(skip).limit(limit).all()
 
 
 # noinspection PyTypeChecker
-@router.get("/read", response_model=CicloP)
+@router.post("/read", response_model=CicloP)
 async def read(p: CicloR, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return await forwards.read(query)
@@ -150,7 +150,7 @@ async def delete(p: CicloId, db: Session = Depends(get_db)):
 
 
 # noinspection PyTypeChecker
-@router.get("/ofertas", response_model=CicloOf)
+@router.post("/ofertas", response_model=CicloOf)
 async def read_ofertas(p: CicloId, db: Session = Depends(get_db)):
     query = db.query(CicloS).filter(CicloS.id_ciclo == p.id_ciclo)
     return await forwards.read(query)

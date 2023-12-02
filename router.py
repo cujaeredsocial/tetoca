@@ -2,7 +2,7 @@ from fastapi import APIRouter
 
 from modules import (autenticar, cadenas, provincias, municipios, tiendas, oficinas, bodegas, estados,
                      consumidores, responsables, oficodas, categorias, nucleos, roles,
-                     productos, subofertas, ofertas, ciclos, usuarios, compras)
+                     productos, subofertas, ofertas, ciclos, usuarios, compras, configuracion)
 
 api_router = APIRouter()
 
@@ -26,3 +26,4 @@ api_router.include_router(oficodas.router, prefix="/oficodas", tags=["/responsab
 api_router.include_router(responsables.router, prefix="/responsables", tags=["/responsables"])
 api_router.include_router(consumidores.router, prefix="/consumidores", tags=["/consumidores"])
 api_router.include_router(compras.router, prefix="/compras", tags=["/compras"])
+api_router.include_router(configuracion.router, prefix="/configuracion", tags=["/configuracion"])

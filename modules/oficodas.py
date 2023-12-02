@@ -137,14 +137,14 @@ async def _find(p: BaseModel, db: Session):
 
 
 # noinspection PyTypeChecker
-@router.get("/all", response_model=List[OficodaP])
+@router.post("/all", response_model=List[OficodaP])
 async def read_all(skip: int = 0, limit: int = 100, p: OficodaR = None, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return query.offset(skip).limit(limit).all()
 
 
 # noinspection PyTypeChecker
-@router.get("/read", response_model=OficodaP)
+@router.post("/read", response_model=OficodaP)
 async def read(p: OficodaR, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return await forwards.read(query)
@@ -181,14 +181,14 @@ async def activate(up: OficodaId, db: Session = Depends(get_db)):
 
 
 # noinspection PyTypeChecker
-@router.get("/oficina", response_model=OficodaOf)
+@router.post("/oficina", response_model=OficodaOf)
 async def read_oficina(p: OficodaId, db: Session = Depends(get_db)):
     query = db.query(OficodaS).filter(OficodaS.id_oficoda == p.id_oficoda)
     return await forwards.read(query)
 
 
 # noinspection PyTypeChecker
-@router.get("/usuario", response_model=OficodaUs)
+@router.post("/usuario", response_model=OficodaUs)
 async def read_usuario(p: OficodaId, db: Session = Depends(get_db)):
     query = db.query(OficodaS).filter(OficodaS.id_oficoda == p.id_oficoda)
     return await forwards.read(query)

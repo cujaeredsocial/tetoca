@@ -112,14 +112,14 @@ async def _find(p: BaseModel, db: Session):
     return query
 
 
-@router.get("/all", response_model=List[ProvinciaP])
+@router.post("/all", response_model=List[ProvinciaP])
 async def read_all(skip: int = 0, limit: int = 100, p: ProvinciaR = None, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return query.offset(skip).limit(limit).all()
 
 
 # noinspection PyTypeChecker
-@router.get("/read", response_model=ProvinciaP)
+@router.post("/read", response_model=ProvinciaP)
 async def read(p: ProvinciaR, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return await forwards.read(query)
@@ -155,7 +155,7 @@ async def activate(up: ProvinciaId, db: Session = Depends(get_db)):
 
 
 # noinspection PyTypeChecker
-@router.get("/municipios", response_model=ProvinciaMu)
+@router.post("/municipios", response_model=ProvinciaMu)
 async def read_municipios(p: ProvinciaId, db: Session = Depends(get_db)):
     query = db.query(ProvinciaS).filter(ProvinciaS.id_provincia == p.id_provincia)
     return await forwards.read(query)

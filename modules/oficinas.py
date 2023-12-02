@@ -38,6 +38,7 @@ class OficinaE(BaseModel):
     nombre: str | None = None
     direccion: str | None = None
     desac: bool | None = None
+    municipio: Optional['MunicipioE'] = None
 
 
 class OficinaR(BaseModel):
@@ -149,14 +150,14 @@ async def _find(p: BaseModel, db: Session):
 
 
 # noinspection PyTypeChecker
-@router.get("/all", response_model=List[OficinaP])
+@router.post("/all", response_model=List[OficinaP])
 async def read_all(skip: int = 0, limit: int = 100, p: OficinaR = None, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return query.offset(skip).limit(limit).all()
 
 
 # noinspection PyTypeChecker
-@router.get("/read", response_model=OficinaP)
+@router.post("/read", response_model=OficinaP)
 async def read(p: OficinaR, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return await forwards.read(query)
@@ -193,21 +194,21 @@ async def activate(up: OficinaId, db: Session = Depends(get_db)):
 
 
 # noinspection PyTypeChecker
-@router.get("/bodegas", response_model=OficinaBo)
+@router.post("/bodegas", response_model=OficinaBo)
 async def read_bodegas(p: MunicipioId, db: Session = Depends(get_db)):
     query = db.query(OficinaS).filter(OficinaS.id_oficina == p.id_oficina)
     return await forwards.read(query)
 
 
 # noinspection PyTypeChecker
-@router.get("/oficodas", response_model=OficinaOf)
+@router.post("/oficodas", response_model=OficinaOf)
 async def read_oficodas(p: MunicipioId, db: Session = Depends(get_db)):
     query = db.query(OficinaS).filter(OficinaS.id_oficina == p.id_oficina)
     return await forwards.read(query)
 
 
 # noinspection PyTypeChecker
-@router.get("/municipio", response_model=OficinaMu)
+@router.post("/municipio", response_model=OficinaMu)
 async def read_municipio(p: MunicipioId, db: Session = Depends(get_db)):
     query = db.query(OficinaS).filter(OficinaS.id_oficina == p.id_oficina)
     return await forwards.read(query)

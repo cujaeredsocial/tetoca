@@ -132,14 +132,14 @@ async def _find(p: BaseModel, db: Session):
 
 
 # noinspection PyTypeChecker
-@router.get("/all", response_model=List[SubOfertaP])
+@router.post("/all", response_model=List[SubOfertaP])
 async def read_all(skip: int = 0, limit: int = 100, p: SubOfertaR = None, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return query.offset(skip).limit(limit).all()
 
 
 # noinspection PyTypeChecker
-@router.get("/read", response_model=SubOfertaP)
+@router.post("/read", response_model=SubOfertaP)
 async def read(p: SubOfertaR, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return await forwards.read(query)
@@ -169,14 +169,14 @@ async def delete(p: SubOfertaId, db: Session = Depends(get_db)):
 
 
 # noinspection PyTypeChecker
-@router.get("/producto", response_model=SubOfertaPr)
+@router.post("/producto", response_model=SubOfertaPr)
 async def read_producto(p: SubOfertaId, db: Session = Depends(get_db)):
     query = db.query(SubOfertaS).filter(SubOfertaS.id_suboferta == p.id_suboferta)
     return await forwards.read(query)
 
 
 # noinspection PyTypeChecker
-@router.get("/subsubofertas", response_model=SubOfertaOf)
+@router.post("/subsubofertas", response_model=SubOfertaOf)
 async def read_ofertas(p: SubOfertaId, db: Session = Depends(get_db)):
     query = db.query(SubOfertaS).filter(SubOfertaS.id_suboferta == p.id_suboferta)
     return await forwards.read(query)

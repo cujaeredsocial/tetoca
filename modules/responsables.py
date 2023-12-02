@@ -138,14 +138,14 @@ async def _find(p: BaseModel, db: Session):
 
 
 # noinspection PyTypeChecker
-@router.get("/all", response_model=List[ResponsableP])
+@router.post("/all", response_model=List[ResponsableP])
 async def read_all(skip: int = 0, limit: int = 100, p: ResponsableR = None, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return query.offset(skip).limit(limit).all()
 
 
 # noinspection PyTypeChecker
-@router.get("/read", response_model=ResponsableP)
+@router.post("/read", response_model=ResponsableP)
 async def read(p: ResponsableR, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return await forwards.read(query)
@@ -182,14 +182,14 @@ async def activate(up: ResponsableId, db: Session = Depends(get_db)):
 
 
 # noinspection PyTypeChecker
-@router.get("/tienda", response_model=ResponsableTi)
+@router.post("/tienda", response_model=ResponsableTi)
 async def read_tienda(p: ResponsableId, db: Session = Depends(get_db)):
     query = db.query(ResponsableS).filter(ResponsableS.id_responsable == p.id_responsable)
     return await forwards.read(query)
 
 
 # noinspection PyTypeChecker
-@router.get("/usuario", response_model=ResponsableUs)
+@router.post("/usuario", response_model=ResponsableUs)
 async def read_usuario(p: ResponsableId, db: Session = Depends(get_db)):
     query = db.query(ResponsableS).filter(ResponsableS.id_responsable == p.id_responsable)
     return await forwards.read(query)

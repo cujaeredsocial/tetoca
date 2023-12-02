@@ -40,6 +40,7 @@ class MunicipioE(BaseModel):
     siglas: str | None = None
     ubicacion: str | None = None
     desac: bool | None = None
+    provincia: Optional['ProvinciaE'] = None
 
 
 class MunicipioR(BaseModel):
@@ -164,14 +165,14 @@ async def _find(p: BaseModel, db: Session):
 
 
 # noinspection PyTypeChecker
-@router.get("/all", response_model=List[MunicipioP])
+@router.post("/all", response_model=List[MunicipioP])
 async def read_all(skip: int = 0, limit: int = 100, p: MunicipioR = None, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return query.offset(skip).limit(limit).all()
 
 
 # noinspection PyTypeChecker
-@router.get("/read", response_model=MunicipioP)
+@router.post("/read", response_model=MunicipioP)
 async def read(p: MunicipioR, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return await forwards.read(query)
@@ -209,28 +210,28 @@ async def activate(up: MunicipioId, db: Session = Depends(get_db)):
 
 
 # noinspection PyTypeChecker
-@router.get("/provincia", response_model=MunicipioPr)
+@router.post("/provincia", response_model=MunicipioPr)
 async def read_provincia(p: MunicipioId, db: Session = Depends(get_db)):
     query = db.query(MunicipioS).filter(MunicipioS.id_municipio == p.id_municipio)
     return await forwards.read(query)
 
 
 # noinspection PyTypeChecker
-@router.get("/tiendas", response_model=MunicipioTi)
+@router.post("/tiendas", response_model=MunicipioTi)
 async def read_tiendas(p: MunicipioId, db: Session = Depends(get_db)):
     query = db.query(MunicipioS).filter(MunicipioS.id_municipio == p.id_municipio)
     return await forwards.read(query)
 
 
 # noinspection PyTypeChecker
-@router.get("/oficinas", response_model=MunicipioOf)
+@router.post("/oficinas", response_model=MunicipioOf)
 async def read_oficinas(p: MunicipioId, db: Session = Depends(get_db)):
     query = db.query(MunicipioS).filter(MunicipioS.id_municipio == p.id_municipio)
     return await forwards.read(query)
 
 
 # noinspection PyTypeChecker
-@router.get("/bodegas", response_model=MunicipioBo)
+@router.post("/bodegas", response_model=MunicipioBo)
 async def read_oficinas(p: MunicipioId, db: Session = Depends(get_db)):
     query = db.query(MunicipioS).filter(MunicipioS.id_municipio == p.id_municipio)
     query = await forwards.read(query)

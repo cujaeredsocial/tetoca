@@ -4,7 +4,7 @@ import datetime
 from pydantic import BaseModel
 from database import Base, get_db
 from sqlalchemy import Column, ForeignKey, Integer, DateTime, func, Boolean, UniqueConstraint
-from sqlalchemy.orm import Session, Mapped, relationship
+from sqlalchemy.orm import Session, Mapped, relationship, mapped_column
 from fastapi import Depends, APIRouter
 from typing import List, Optional
 
@@ -23,6 +23,7 @@ class ConsumidorId(BaseModel):
 class ConsumidorP(ConsumidorId):
     usuario: 'UsuarioE'
     nucleo: 'NucleoE'
+    nucleos_jefe: List['NucleoE'] | None
     verificado: bool
     fecha_creacion: datetime.datetime
     desac: bool
@@ -75,8 +76,9 @@ class ConsumidorS(Base):
     id_consumidor = Column(Integer, primary_key=True, index=True)
     id_usuario = Column(Integer, ForeignKey('usuarios.id_usuario', ondelete='CASCADE'), nullable=False, index=True)
     usuario: Mapped['UsuarioS'] = relationship('UsuarioS', back_populates="consumidores")
-    id_nucleo = Column(Integer, ForeignKey('nucleos.id_nucleo', ondelete='CASCADE'), nullable=False, index=True)
-    nucleo: Mapped['NucleoS'] = relationship('NucleoS', back_populates="consumidores")
+    id_nucleo: Mapped[int] = mapped_column(ForeignKey('nucleos.id_nucleo', ondelete='CASCADE'), index=True)
+    nucleo: Mapped['NucleoS'] = relationship(back_populates="consumidores", foreign_keys=id_nucleo)
+    nucleos_jefe: Mapped[List['NucleoS']] = relationship(back_populates="consumidor_jefe", foreign_keys='NucleoS.id_consumidor_jefe')
     fecha_creacion = Column(DateTime(timezone=True), server_default=func.now())
     verificado = Column(Boolean, unique=False, nullable=False, index=False, default=False)
     desac = Column(Boolean, unique=False, nullable=False, index=False, default=False)
@@ -146,14 +148,14 @@ async def _find(p: BaseModel, db: Session):
 
 
 # noinspection PyTypeChecker
-@router.get("/all", response_model=List[ConsumidorP])
+@router.post("/all", response_model=List[ConsumidorP])
 async def read_all(skip: int = 0, limit: int = 100, p: ConsumidorR = None, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return query.offset(skip).limit(limit).all()
 
 
 # noinspection PyTypeChecker
-@router.get("/read", response_model=ConsumidorP)
+@router.post("/read", response_model=ConsumidorP)
 async def read(p: ConsumidorR, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return await forwards.read(query)
@@ -190,14 +192,14 @@ async def activate(up: ConsumidorId, db: Session = Depends(get_db)):
 
 
 # noinspection PyTypeChecker
-@router.get("/nucleo", response_model=ConsumidorNu)
+@router.post("/nucleo", response_model=ConsumidorNu)
 async def read_nucleo(p: ConsumidorId, db: Session = Depends(get_db)):
     query = db.query(ConsumidorS).filter(ConsumidorS.id_consumidor == p.id_consumidor)
     return await forwards.read(query)
 
 
 # noinspection PyTypeChecker
-@router.get("/usuario", response_model=ConsumidorUs)
+@router.post("/usuario", response_model=ConsumidorUs)
 async def read_usuario(p: ConsumidorId, db: Session = Depends(get_db)):
     query = db.query(ConsumidorS).filter(ConsumidorS.id_consumidor == p.id_consumidor)
     return await forwards.read(query)

@@ -124,14 +124,14 @@ async def _find(p: BaseModel, db: Session):
 
 
 # noinspection PyTypeChecker
-@router.get("/all", response_model=List[ProductoP])
+@router.post("/all", response_model=List[ProductoP])
 async def read_all(skip: int = 0, limit: int = 100, p: ProductoR = None, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return query.offset(skip).limit(limit).all()
 
 
 # noinspection PyTypeChecker
-@router.get("/read", response_model=ProductoP)
+@router.post("/read", response_model=ProductoP)
 async def read(p: ProductoR, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return await forwards.read(query)
@@ -168,14 +168,14 @@ async def activate(up: ProductoId, db: Session = Depends(get_db)):
 
 
 # noinspection PyTypeChecker
-@router.get("/subofertas", response_model=ProductoSu)
+@router.post("/subofertas", response_model=ProductoSu)
 async def read_ofe(p: ProductoId, db: Session = Depends(get_db)):
     query = db.query(ProductoS).filter(ProductoS.id_producto == p.id_producto)
     return await forwards.read(query)
 
 
 # noinspection PyTypeChecker
-@router.get("/categoria", response_model=ProductoCa)
+@router.post("/categoria", response_model=ProductoCa)
 async def read_categoria(p: ProductoId, db: Session = Depends(get_db)):
     query = db.query(ProductoS).filter(ProductoS.id_producto == p.id_producto)
     return await forwards.read(query)

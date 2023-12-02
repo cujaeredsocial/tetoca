@@ -106,14 +106,14 @@ async def _find(p: BaseModel, db: Session):
 
 
 # noinspection PyTypeChecker
-@router.get("/all", response_model=List[CadenaP])
+@router.post("/all", response_model=List[CadenaP])
 async def read_all(skip: int = 0, limit: int = 100, p: CadenaR = None, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return query.offset(skip).limit(limit).all()
 
 
 # noinspection PyTypeChecker
-@router.get("/read", response_model=CadenaP)
+@router.post("/read", response_model=CadenaP)
 async def read(p: CadenaR, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return await forwards.read(query)
@@ -149,7 +149,7 @@ async def activate(up: CadenaId, db: Session = Depends(get_db)):
 
 
 # noinspection PyTypeChecker
-@router.get("/tiendas", response_model=CadenaTi)
+@router.post("/tiendas", response_model=CadenaTi)
 async def read_tiendas(p: CadenaId, db: Session = Depends(get_db)):
     query = db.query(CadenaS).filter(CadenaS.id_cadena == p.id_cadena)
     return await forwards.read(query)

@@ -213,14 +213,14 @@ async def _find(p: BaseModel, db: Session):
 
 
 # noinspection PyTypeChecker
-@router.get("/all", response_model=List[CompraP])
+@router.post("/all", response_model=List[CompraP])
 async def read_all(skip: int = 0, limit: int = 100, p: CompraR = None, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return query.offset(skip).limit(limit).all()
 
 
 # noinspection PyTypeChecker
-@router.get("/read", response_model=CompraP)
+@router.post("/read", response_model=CompraP)
 async def read(p: CompraR, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return await forwards.read(query)
@@ -272,28 +272,28 @@ async def terminado(up: CompraId, db: Session = Depends(get_db)):
 
 
 # noinspection PyTypeChecker
-@router.get("/oferta", response_model=CompraOf)
+@router.post("/oferta", response_model=CompraOf)
 async def read_oferta(p: CompraId, db: Session = Depends(get_db)):
     query = db.query(CompraS).filter(CompraS.id_compra == p.id_compra)
     return await forwards.read(query)
 
 
 # noinspection PyTypeChecker
-@router.get("/nucleo", response_model=CompraNu)
+@router.post("/nucleo", response_model=CompraNu)
 async def read_nucleo(p: CompraId, db: Session = Depends(get_db)):
     query = db.query(CompraS).filter(CompraS.id_compra == p.id_compra)
     return await forwards.read(query)
 
 
 # noinspection PyTypeChecker
-@router.get("/usuario", response_model=CompraUs)
+@router.post("/usuario", response_model=CompraUs)
 async def read_usuario(p: CompraId, db: Session = Depends(get_db)):
     query = db.query(CompraS).filter(CompraS.id_compra == p.id_compra)
     return await forwards.read(query)
 
 
 # noinspection PyTypeChecker
-@router.get("/estado", response_model=CompraEs)
+@router.post("/estado", response_model=CompraEs)
 async def read_estado(p: CompraId, db: Session = Depends(get_db)):
     query = db.query(CompraS).filter(CompraS.id_compra == p.id_compra)
     return await forwards.read(query)

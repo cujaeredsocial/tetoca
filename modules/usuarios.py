@@ -262,14 +262,14 @@ async def _find(p: BaseModel, db: Session):
 
 
 # noinspection PyTypeChecker
-@router.get("/all", response_model=List[UsuarioP])
+@router.post("/all", response_model=List[UsuarioP])
 async def read_all(skip: int = 0, limit: int = 100, p: UsuarioR = None, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return query.offset(skip).limit(limit).all()
 
 
 # noinspection PyTypeChecker
-@router.get("/read", response_model=UsuarioP)
+@router.post("/read", response_model=UsuarioP)
 async def read(p: UsuarioR, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return await forwards.read(query)
@@ -310,35 +310,35 @@ async def activate(up: UsuarioId, db: Session = Depends(get_db)):
 
 
 # noinspection PyTypeChecker
-@router.get("/rol", response_model=UsuarioRo)
+@router.post("/rol", response_model=UsuarioRo)
 async def read_rol(p: UsuarioId, db: Session = Depends(get_db)):
     query = db.query(UsuarioS).filter(UsuarioS.id_usuario == p.id_usuario)
     return await forwards.read(query)
 
 
 # noinspection PyTypeChecker
-@router.get("/responsables", response_model=UsuarioRe)
+@router.post("/responsables", response_model=UsuarioRe)
 async def read_responsables(p: UsuarioId, db: Session = Depends(get_db)):
     query = db.query(UsuarioS).filter(UsuarioS.id_usuario == p.id_usuario)
     return await forwards.read(query)
 
 
 # noinspection PyTypeChecker
-@router.get("/consumidores", response_model=UsuarioCo)
+@router.post("/consumidores", response_model=UsuarioCo)
 async def read_consumidores(p: UsuarioId, db: Session = Depends(get_db)):
     query = db.query(UsuarioS).filter(UsuarioS.id_usuario == p.id_usuario)
     return await forwards.read(query)
 
 
 # noinspection PyTypeChecker
-@router.get("/oficodas", response_model=UsuarioOf)
+@router.post("/oficodas", response_model=UsuarioOf)
 async def read_oficodas(p: UsuarioId, db: Session = Depends(get_db)):
     query = db.query(UsuarioS).filter(UsuarioS.id_usuario == p.id_usuario)
     return await forwards.read(query)
 
 
 # noinspection PyTypeChecker
-@router.get("/compras", response_model=UsuarioCm)
+@router.post("/compras", response_model=UsuarioCm)
 async def read_compras(p: UsuarioId, db: Session = Depends(get_db)):
     query = db.query(UsuarioS).filter(UsuarioS.id_usuario == p.id_usuario)
     return await forwards.read(query)

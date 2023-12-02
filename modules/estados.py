@@ -96,14 +96,14 @@ async def _find(p: BaseModel, db: Session):
 
 
 # noinspection PyTypeChecker
-@router.get("/all", response_model=List[EstadoP])
+@router.post("/all", response_model=List[EstadoP])
 async def read_all(skip: int = 0, limit: int = 100, p: EstadoR = None, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return query.offset(skip).limit(limit).all()
 
 
 # noinspection PyTypeChecker
-@router.get("/read", response_model=EstadoP)
+@router.post("/read", response_model=EstadoP)
 async def read(p: EstadoR, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return await forwards.read(query)
@@ -132,7 +132,7 @@ async def delete(p: EstadoId, db: Session = Depends(get_db)):
 
 
 # noinspection PyTypeChecker
-@router.get("/compras", response_model=EstadoCo)
+@router.post("/compras", response_model=EstadoCo)
 async def read_compras(p: EstadoId, db: Session = Depends(get_db)):
     query = db.query(EstadoS).filter(EstadoS.id_estado == p.id_estado)
     return await forwards.read(query)

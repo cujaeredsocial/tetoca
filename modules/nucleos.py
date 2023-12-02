@@ -2,7 +2,7 @@ from __future__ import annotations
 from pydantic import BaseModel
 from database import Base, get_db
 from sqlalchemy import Column, Integer, ForeignKey, String, UniqueConstraint, Boolean
-from sqlalchemy.orm import Session, Mapped, relationship
+from sqlalchemy.orm import Session, Mapped, relationship, mapped_column
 from fastapi import Depends, APIRouter
 from typing import List, Optional
 
@@ -24,7 +24,7 @@ class NucleoP(NucleoId):
     cant_modulos: int
     desac: bool
     bodega: 'BodegaE'
-    consumidor_jefe: 'ConsumidorE'# | None
+    consumidor_jefe: Optional['ConsumidorE'] = None
     consumidores: List['ConsumidorE'] | None
     compras: List['CompraE'] | None
     
@@ -99,12 +99,11 @@ class NucleoS(Base):
     cant_miembros = Column(Integer, nullable=False, index=True, default=0)
     cant_modulos = Column(Integer, nullable=False, index=True, default=0)
     desac = Column(Boolean, unique=False, nullable=False, index=False, default=False)
-    id_bodega = Column(Integer, ForeignKey('bodegas.id_bodega', ondelete='CASCADE'), nullable=False, index=True)
-    bodega: Mapped['BodegaS'] = relationship('BodegaS', back_populates="nucleos")
-    #id_consumidor_jefe = Column(Integer, ForeignKey('consumidores.id_consumidor', ondelete='CASCADE'),
-    #                            nullable=True, index=True)
-    #consumidor_jefe: Mapped['ConsumidorS'] = relationship('ConsumidorS', back_populates="nucleos")
-    consumidores: Mapped[List['ConsumidorS']] = relationship(back_populates="nucleo", cascade="all, delete")
+    id_bodega: Mapped[int] = mapped_column(ForeignKey('bodegas.id_bodega', ondelete='CASCADE'), nullable=False, index=True)
+    bodega: Mapped['BodegaS'] = relationship(back_populates="nucleos")
+    consumidores: Mapped[List['ConsumidorS']] = relationship(back_populates="nucleo", foreign_keys='ConsumidorS.id_nucleo')
+    id_consumidor_jefe: Mapped[Optional[int]] = mapped_column(ForeignKey('consumidores.id_consumidor', ondelete='CASCADE'), index=True)
+    consumidor_jefe: Mapped[Optional['ConsumidorS']] = relationship(back_populates="nucleos_jefe", foreign_keys=id_consumidor_jefe)
     compras: Mapped[List['CompraS']] = relationship(back_populates="nucleo", cascade="all, delete")
     __table_args__ = (UniqueConstraint(numero, id_bodega, name='u_numero_bodega'),)
 
@@ -185,14 +184,14 @@ async def _find(p: BaseModel, db: Session):
 
 
 # noinspection PyTypeChecker
-@router.get("/all", response_model=List[NucleoP])
+@router.post("/all", response_model=List[NucleoP])
 async def read_all(skip: int = 0, limit: int = 100, p: NucleoR = None, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return query.offset(skip).limit(limit).all()
 
 
 # noinspection PyTypeChecker
-@router.get("/read", response_model=NucleoP)
+@router.post("/read", response_model=NucleoP)
 async def read(p: NucleoR, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return await forwards.read(query)
@@ -230,28 +229,28 @@ async def activate(up: NucleoId, db: Session = Depends(get_db)):
 
 
 # noinspection PyTypeChecker
-@router.get("/bodega", response_model=NucleoBo)
+@router.post("/bodega", response_model=NucleoBo)
 async def read_bodega(p: NucleoId, db: Session = Depends(get_db)):
     query = db.query(NucleoS).filter(NucleoS.id_nucleo == p.id_nucleo)
     return await forwards.read(query)
 
 
 # noinspection PyTypeChecker
-@router.get("/consumidor_jefe", response_model=NucleoJe)
+@router.post("/consumidor_jefe", response_model=NucleoJe)
 async def read_consumidor_jefe(p: NucleoId, db: Session = Depends(get_db)):
     query = db.query(NucleoS).filter(NucleoS.id_nucleo == p.id_nucleo)
     return await forwards.read(query)
 
 
 # noinspection PyTypeChecker
-@router.get("/consumidores", response_model=NucleoCs)
+@router.post("/consumidores", response_model=NucleoCs)
 async def read_consumidores(p: NucleoId, db: Session = Depends(get_db)):
     query = db.query(NucleoS).filter(NucleoS.id_nucleo == p.id_nucleo)
     return await forwards.read(query)
 
 
 # noinspection PyTypeChecker
-@router.get("/compras", response_model=NucleoCp)
+@router.post("/compras", response_model=NucleoCp)
 async def read_compras(p: NucleoId, db: Session = Depends(get_db)):
     query = db.query(NucleoS).filter(NucleoS.id_nucleo == p.id_nucleo)
     return await forwards.read(query)

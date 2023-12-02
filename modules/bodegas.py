@@ -25,7 +25,7 @@ class BodegaP(BodegaId):
     es_especial: bool
     desac: bool
     oficina: 'OficinaE'
-    tienda: 'TiendaE'
+    tienda:  Optional['TiendaE'] = None
     nucleos: List['NucleoE'] | None
 
 
@@ -169,14 +169,14 @@ async def _find(p: BaseModel, db: Session):
 
 
 # noinspection PyTypeChecker
-@router.get("/all", response_model=List[BodegaP])
+@router.post("/all", response_model=List[BodegaP])
 async def read_all(skip: int = 0, limit: int = 100, p: BodegaR = None, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return query.offset(skip).limit(limit).all()
 
 
 # noinspection PyTypeChecker
-@router.get("/read", response_model=BodegaP)
+@router.post("/read", response_model=BodegaP)
 async def read(p: BodegaR, db: Session = Depends(get_db)):
     query = await _find(p, db)
     return await forwards.read(query)
@@ -215,21 +215,28 @@ async def activate(up: BodegaId, db: Session = Depends(get_db)):
 
 
 # noinspection PyTypeChecker
-@router.get("/nucleos", response_model=BodegaNu)
+@router.post("/nucleos", response_model=BodegaNu)
 async def oficina(up: BodegaId, db: Session = Depends(get_db)):
     query = db.query(BodegaS).filter(BodegaS.id_bodega == up.id_bodega)
     return await forwards.read(query)
 
 
 # noinspection PyTypeChecker
-@router.get("/oficina", response_model=BodegaOf)
+@router.post("/oficina", response_model=BodegaOf)
 async def oficina(up: BodegaId, db: Session = Depends(get_db)):
     query = db.query(BodegaS).filter(BodegaS.id_bodega == up.id_bodega)
     return await forwards.read(query)
 
 
 # noinspection PyTypeChecker
-@router.get("/tienda", response_model=BodegaTi)
+@router.post("/tienda", response_model=BodegaTi)
 async def oficina(up: BodegaId, db: Session = Depends(get_db)):
+    query = db.query(BodegaS).filter(BodegaS.id_bodega == up.id_bodega)
+    return await forwards.read(query)
+
+
+# noinspection PyTypeChecker
+@router.post("/vinculacion", response_model=BodegaTi)
+async def oficina(up: BodegaId, ti:TiendaId, db: Session = Depends(get_db)):
     query = db.query(BodegaS).filter(BodegaS.id_bodega == up.id_bodega)
     return await forwards.read(query)
